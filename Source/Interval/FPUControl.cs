@@ -1,20 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using System.Security;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Interval;
 
 /// <summary>
 /// Uses '_controlfp_s' function in C++ lib <see href="https://learn.microsoft.com/en-us/cpp/c-runtime-library/reference/controlfp-s?view=msvc-170"/>
 /// </summary>
-/// 
 public static class FPUControl
 {
+    /// <summary>
+    /// Rounding mask to the FPU control word
+    /// </summary>
     const uint RoundingMask = 0x00000300; //_MCW_RC 
+
+    /// <summary>
+    /// Rounding modes control for _controlfp_s function
+    /// </summary>
     public enum RoundingMode : uint
     {
         Nearest = 0x00000000, //_RC_NEAR 
@@ -26,6 +27,7 @@ public static class FPUControl
     public static readonly RoundingMode InitialRoundingMode;
     static FPUControl()
     {
+        //Remember initial rounding mode at the start of program
         InitialRoundingMode = GetRoundingMode();
     }
 
