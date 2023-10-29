@@ -1,12 +1,11 @@
-﻿using System;
-using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 
 namespace Interval;
 
 using Interval = Interval<decimal>;
-using IntervalDouble = Interval<double>;
+using DoubleInterval = Interval<double>;
+using FloatInterval = Interval<float>;
 
 public readonly record struct Interval<T>
       : IAdditionOperators<Interval<T>, Interval<T>, Interval<T>>,
@@ -18,8 +17,6 @@ public readonly record struct Interval<T>
         IIncrementOperators<Interval<T>>,
         IMultiplicativeIdentity<Interval<T>, Interval<T>>,
         IMultiplyOperators<Interval<T>, Interval<T>, Interval<T>>,
-        ISpanFormattable,
-        ISpanParsable<Interval<T>>,
         ISubtractionOperators<Interval<T>, Interval<T>, Interval<T>>,
         IUnaryPlusOperators<Interval<T>, Interval<T>>,
         IUnaryNegationOperators<Interval<T>, Interval<T>>,
@@ -27,9 +24,10 @@ public readonly record struct Interval<T>
         IComparable<Interval<T>>,
         IComparable,
         IFormattable
-    where T : struct
+    where T : struct //it expects float, double or decimal
             , INumberBase<T>
             , IComparisonOperators<T, T, bool>
+            , IFormattable
 {
     static readonly T _TTwo = T.One + T.One;
     static readonly Interval<T> _Zero = new(T.Zero);
@@ -180,46 +178,8 @@ public readonly record struct Interval<T>
         };
 
     //Parsing methods
-    public static Interval<T> Parse(string s, NumberStyles style, IFormatProvider? provider)
-    {
-
-    }
-
-    public static Interval<T> Parse(ReadOnlySpan<char> s, NumberStyles style, IFormatProvider? provider)
-    {
-        throw new NotImplementedException();
-    }
-
-
-    public static bool TryParse(ReadOnlySpan<char> s, NumberStyles style, IFormatProvider? provider, [MaybeNullWhen(false)] out Interval<T> result)
-    {
-        throw new NotImplementedException();
-    }
-
-    public static bool TryParse([NotNullWhen(true)] string? s, NumberStyles style, IFormatProvider? provider, [MaybeNullWhen(false)] out Interval<T> result)
-    {
-        throw new NotImplementedException();
-    }
-
-    public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
-    {
-        throw new NotImplementedException();
-    }
-
     public string ToString(string? format, IFormatProvider? formatProvider)
-    {
-        throw new NotImplementedException();
-    }
-
-    public static Interval<T> Parse(ReadOnlySpan<char> s, IFormatProvider? provider)
-    {
-        throw new NotImplementedException();
-    }
-
-    public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, [MaybeNullWhen(false)] out Interval<T> result)
-    {
-        throw new NotImplementedException();
-    }
+        => $"[{Min.ToString(format, formatProvider)};{Max.ToString(format, formatProvider)}]";
 
     public static Interval<T> Parse(string s, IFormatProvider? provider)
     {
