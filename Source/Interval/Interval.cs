@@ -60,7 +60,6 @@ public readonly record struct Interval<T>
     public T Width => Max - Min;
     public T Radius => Max - Min / _TTwo;
     public T Middle => (Min + Max) / _TTwo;
-    public bool HasZero => Min <= T.Zero && Max >= T.Zero;
     public static int Radix => T.Radix;
     public static Interval<T> Zero => _Zero;
     public static Interval<T> One => _One;
@@ -155,15 +154,19 @@ public readonly record struct Interval<T>
     public static bool operator !=(Interval<T>? left, Interval<T>? right)
         => !(left == right);
     public static bool operator >(Interval<T> left, Interval<T> right)
-        => right.Max > left.Max;
+        => left.Min > right.Min && left.Max > right.Max;
     public static bool operator >=(Interval<T> left, Interval<T> right)
         => left > right || left == right;
     public static bool operator <(Interval<T> left, Interval<T> right)
-        => left.Min < right.Min;
+        => left.Min < right.Min && left.Max < right.Max;
     public static bool operator <=(Interval<T> left, Interval<T> right)
         => left < right || left == right;
 
     //Utility methods
+    public bool HasZero
+        => Min <= T.Zero && Max >= T.Zero;
+    public static bool IsZero(Interval<T> value)
+        => value == Interval<T>.Zero;
     public static Interval<T> Abs(Interval<T> value)
     {
         var min = T.Abs(value.Min);
@@ -175,10 +178,9 @@ public readonly record struct Interval<T>
             _ => new(MathExtensions.Min(min, max), MathExtensions.Max(min, max))
         };
     }
-    public static bool IsZero(Interval<T> value)
-        => value == Interval<T>.Zero;
-    public int CompareTo(Interval<T> other)
-        => this < other ? -1
+    public int CompareTo(Interval<T>? other)
+        => other is null ? 1
+        : this < other ? -1
         : this > other ? 1
         : 0;
     public int CompareTo(object? obj)
@@ -195,11 +197,36 @@ public readonly record struct Interval<T>
         => $"[{Min.ToString(format, formatProvider)};{Max.ToString(format, formatProvider)}]";
     public static Interval<T> Parse(string s, IFormatProvider? provider)
     {
-        throw new NotImplementedException();
+        var rgx = _Template.Match(s);
+        if (!rgx.Success)
+            throw new ArgumentException("Couldn't parse string as Interval.");
+
+        T min = T.Parse(rgx.Groups[0].Value, provider);
+        T max = T.Parse(rgx.Groups[1].Value, provider);
+
+        return new Interval<T>(min, max);
     }
     public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, [MaybeNullWhen(false)] out Interval<T> result)
     {
-        throw new NotImplementedException();
+        result = Zero;
+
+        if (string.IsNullOrWhiteSpace(s))
+            return false;
+
+        var rgx = _Template.Match(s);
+
+        if (!rgx.Success)
+            return false;
+
+        if (!T.TryParse(rgx.Groups[0].Value, provider, out T min))
+            return false;
+
+        if (!T.TryParse(rgx.Groups[1].Value, provider, out T max))
+            return false;
+
+        result = new Interval<T>(min, max);
+
+        return true;
     }
 
 
@@ -207,5 +234,5 @@ public readonly record struct Interval<T>
     static readonly T _TTwo = T.One + T.One;
     static readonly Interval<T> _Zero = new(T.Zero);
     static readonly Interval<T> _One = new(T.One);
-    static readonly Regex _Template = new Regex("");//TODO define parsing regex for: [1;2] [0.111;3] [0;0,001] [1e-4;2] [0;3E12]
+    static readonly Regex _Template = new Regex(@"^\\[(.+)\\;(.+)\\]$");//regex for: [1;2] [0.111;3] [0;0,001] [1e-4;2] [0;3E12]
 }
