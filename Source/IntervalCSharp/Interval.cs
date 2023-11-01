@@ -1,18 +1,15 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Text.RegularExpressions;
 
-namespace Interval;
-
-using Interval = Interval<decimal>;
-using DoubleInterval = Interval<double>;
-using FloatInterval = Interval<float>;
+namespace IntervalCSharp;
 
 /// <summary>
 /// Interval number defined by Min and Max inclusive bounds. Implements interval arithmetic operations. 
 /// </summary>
 /// <typeparam name="T">Numeric type of the interval boundaries.</typeparam>
-public readonly record struct Interval<T>
+public record struct Interval<T>
       : IAdditionOperators<Interval<T>, Interval<T>, Interval<T>>,
         IAdditiveIdentity<Interval<T>, Interval<T>>,
         IDecrementOperators<Interval<T>>,
@@ -58,9 +55,8 @@ public readonly record struct Interval<T>
     //Utility properties
     public bool IsPoint => Min == Max;
     public T Width => Max - Min;
-    public T Radius => Max - Min / _TTwo;
+    public T Radius => (Max - Min) / _TTwo;
     public T Middle => (Min + Max) / _TTwo;
-    public static int Radix => T.Radix;
     public static Interval<T> Zero => _Zero;
     public static Interval<T> One => _One;
     public static Interval<T> AdditiveIdentity => Interval<T>.Zero;
@@ -162,6 +158,10 @@ public readonly record struct Interval<T>
     public static bool operator <=(Interval<T> left, Interval<T> right)
         => left < right || left == right;
 
+    //Explicit conversion operators
+    public static explicit operator Interval<T>(T num)
+        => new Interval<T>(num);
+
     //Utility methods
     public bool HasZero
         => Min <= T.Zero && Max >= T.Zero;
@@ -178,11 +178,8 @@ public readonly record struct Interval<T>
             _ => new(MathExtensions.Min(min, max), MathExtensions.Max(min, max))
         };
     }
-    public int CompareTo(Interval<T>? other)
-        => other is null ? 1
-        : this < other ? -1
-        : this > other ? 1
-        : 0;
+    public int CompareTo(Interval<T> other)
+        => this < other ? -1 : this > other ? 1 : 0;
     public int CompareTo(object? obj)
         => obj switch
         {
@@ -193,6 +190,8 @@ public readonly record struct Interval<T>
         };
 
     //Parsing methods
+    public override string ToString()
+        => $"[{Min};{Max}]";
     public string ToString(string? format, IFormatProvider? formatProvider)
         => $"[{Min.ToString(format, formatProvider)};{Max.ToString(format, formatProvider)}]";
     public static Interval<T> Parse(string s, IFormatProvider? provider)
@@ -231,8 +230,8 @@ public readonly record struct Interval<T>
 
 
     //Constants
-    static readonly T _TTwo = T.One + T.One;
-    static readonly Interval<T> _Zero = new(T.Zero);
-    static readonly Interval<T> _One = new(T.One);
-    static readonly Regex _Template = new Regex(@"^\\[(.+)\\;(.+)\\]$");//regex for: [1;2] [0.111;3] [0;0,001] [1e-4;2] [0;3E12]
+    internal static readonly T _TTwo = T.One + T.One;
+    internal static readonly Interval<T> _Zero = new(T.Zero);
+    internal static readonly Interval<T> _One = new(T.One);
+    internal static readonly Regex _Template = new Regex(@"^\\[(.+)\\;(.+)\\]$");//regex for: [1;2] [0.111;3] [0;0,001] [1e-4;2] [0;3E12]
 }

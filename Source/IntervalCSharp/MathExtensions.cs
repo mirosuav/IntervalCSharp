@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 
-namespace Interval;
+namespace IntervalCSharp;
 public static class MathExtensions
 {
     static readonly InvalidOperationException NoParamsEx = new("Empty parameters array provided.");

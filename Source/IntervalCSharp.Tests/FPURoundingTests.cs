@@ -1,7 +1,8 @@
 ﻿using FluentAssertions;
+using IntervalCSharp;
 using Xunit;
 
-namespace Interval.Tests;
+namespace IntervalCSharp.Tests;
 
 public class FPURoundingTests
 {
