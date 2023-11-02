@@ -1,5 +1,7 @@
 ﻿using Xunit;
 using FluentAssertions;
+using System.Globalization;
+using Xunit.Sdk;
 
 namespace IntervalCSharp.Tests;
 using Interval = Interval<double>;
@@ -18,8 +20,8 @@ public class IntervalTests
         //ACT
         var sut = Interval.Zero;
         //ASSERT
-        sut.Min.Should().Be(0);
-        sut.Max.Should().Be(0);
+        sut.Min.Should().Be(0.0);
+        sut.Max.Should().Be(0.0);
     }
 
     [Fact]
@@ -28,8 +30,8 @@ public class IntervalTests
         //ACT
         var sut = Interval.One;
         //ASSERT
-        sut.Min.Should().Be(1);
-        sut.Max.Should().Be(1);
+        sut.Min.Should().Be(1.0);
+        sut.Max.Should().Be(1.0);
     }
 
     //Constructors tests
@@ -80,10 +82,30 @@ public class IntervalTests
     [InlineData(0.0, 0.0)]
     [InlineData(-1.1, 1.1)]
     [InlineData(-1.1, -0.01)]
+    [InlineData(double.MaxValue, double.MaxValue)]
+    [InlineData(double.MinValue, double.MinValue)]
+    [InlineData(double.MinValue, double.MaxValue)]
     public void ConstructorMinMax(double min, double max)
     {
         //ACT
         var sut = new Interval(min, max);
+        //ASSERT
+        sut.Min.Should().Be(min);
+        sut.Max.Should().Be(max);
+    }
+
+    [Theory]
+    [InlineData(1.0, 1.0)]
+    [InlineData(0.0, 0.0)]
+    [InlineData(-1.1, 1.1)]
+    [InlineData(-1.1, -0.01)]
+    [InlineData(double.MaxValue, double.MaxValue)]
+    [InlineData(double.MinValue, double.MinValue)]
+    [InlineData(double.MinValue, double.MaxValue)]
+    public void ConstructorMinMaxSwapped(double min, double max)
+    {
+        //ACT
+        var sut = new Interval(max, min);
         //ASSERT
         sut.Min.Should().Be(min);
         sut.Max.Should().Be(max);
@@ -127,13 +149,13 @@ public class IntervalTests
     [Fact]
     public void AdditiveIdentity()
     {
-        Interval.AdditiveIdentity.Should().Be(new Interval(0, 0));
+        Interval.AdditiveIdentity.Should().Be(Interval.Zero);
     }
 
     [Fact]
     public void MultiplicativeIdentity()
     {
-        Interval.MultiplicativeIdentity.Should().Be(new Interval(1, 1));
+        Interval.MultiplicativeIdentity.Should().Be(Interval.One);
     }
 
     [Theory]
@@ -151,6 +173,24 @@ public class IntervalTests
         var sut = initial.IsPoint;
         //ASSERT
         sut.Should().Be(min == max);
+    }
+
+
+    [Theory]
+    [InlineData(1.0, 1.0)]
+    [InlineData(0.0, 0.0)]
+    [InlineData(-1.1, 1.1)]
+    [InlineData(-1.1, -0.01)]
+    [InlineData(1e18, 1.1e18)]
+    [InlineData(1e18, 1e18)]
+    public void IsZero(double min, double max)
+    {
+        //ARRANGE
+        var initial = new Interval(min, max);
+        //ACT
+        var sut = Interval.IsZero(initial);
+        //ASSERT
+        sut.Should().Be(min == 0.0 && min == max);
     }
 
     [Theory]
@@ -197,7 +237,7 @@ public class IntervalTests
     public void Middle(double min, double max)
     {
         //ARRANGE
-        var expected = (min + max) / 2.0;
+        double expected = (min + max) / 2.0;
         var initial = new Interval(min, max);
 
         //ACT
@@ -207,7 +247,155 @@ public class IntervalTests
     }
 
 
+    [Theory]
+    [InlineData(1.0, 1.0)]
+    [InlineData(0.0, 0.0)]
+    [InlineData(-1.1, 1.1)]
+    public void OperatorPlusPlus(double min, double max)
+    {
+        //ARRANGE
+        var sut = new Interval(min, max);
 
+        //ACT
+        sut++;
+
+        //ASSERT
+        sut.Min.Should().Be(min + 1.0);
+        sut.Max.Should().Be(max + 1.0);
+    }
+
+    [Theory]
+    [InlineData(1.0, 1.0)]
+    [InlineData(0.0, 0.0)]
+    [InlineData(-1.1, 1.1)]
+    [InlineData(-1.1, -0.01)]
+    [InlineData(1e18, 1.1e18)]
+    [InlineData(1e18, 1e18)]
+    public void OperatorMinusMinus(double min, double max)
+    {
+        //ARRANGE
+        var sut = new Interval(min, max);
+        var org = sut;
+
+        //ACT
+        sut--;
+
+        //ASSERT
+        sut.Should().Be(org - Interval.One);
+    }
+
+
+
+    [Theory]
+    [InlineData(1.0, 1.0)]
+    [InlineData(0.0, 0.0)]
+    [InlineData(-1.1, 1.1)]
+    [InlineData(-1.1, -0.01)]
+    [InlineData(1e18, 1.1e18)]
+    [InlineData(1e18, 1e18)]
+    public void OperatorUnaryPlus(double min, double max)
+    {
+        //ARRANGE
+        var sut = new Interval(min, max);
+
+        //ACT
+        var result = +sut;
+
+        //ASSERT
+        result.Should().Be(sut);
+        result.Min.Should().Be(min);
+        result.Max.Should().Be(max);
+    }
+
+    [Theory]
+    [InlineData(1.0, 1.0)]
+    [InlineData(0.0, 0.0)]
+    [InlineData(-1.1, 1.1)]
+    [InlineData(-1.1, -0.01)]
+    [InlineData(1e18, 1.1e18)]
+    [InlineData(1e18, 1e18)]
+    public void OperatorUnaryMinus(double min, double max)
+    {
+        //ARRANGE
+        var sut = new Interval(min, max);
+
+        //ACT
+        var result = -sut;
+
+        //ASSERT
+        result.Min.Should().Be(-max);
+        result.Max.Should().Be(-min);
+    }
+
+
+
+    [Theory]
+    [InlineData("[1.0;1.0]", 1.0, 1.0)]
+    [InlineData("[ 0.0 ; 0.0 ]", 0.0, 0.0)]
+    [InlineData("[-1.0;1.1 ]", -1.0, 1.1)]
+    [InlineData("[-1.1; -0.01]", -1.1, -0.01)]
+    [InlineData("[ 1e18;1.1e18]", 1e18, 1.1e18)]
+    [InlineData("[1.0E18 ;+1.0E18]", 1e18, 1e18)]
+    public void Parse_Valid(string str, double min, double max)
+    {
+        //ACT
+        var sut = Interval.Parse(str, CultureInfo.GetCultureInfo("en-US"));
+        //ASSERT
+        sut.Min.Should().Be(min);
+        sut.Max.Should().Be(max);
+    }
+
+    
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("1.0")]
+    [InlineData("[1.0")]
+    [InlineData("[1.0]")]
+    [InlineData("[1.0;]")]
+    [InlineData("[1.0;a]")]
+    [InlineData("[1.0;1.0a]")]
+    [InlineData("[1;0;1,0]")]
+    [InlineData("[1.0;;1.0]")]
+    [InlineData("[1.0,1.0]")]
+    public void Parse_InValid(string str)
+    {
+        //ACT
+        ((Action)(()=> Interval.Parse(str, CultureInfo.GetCultureInfo("en-US"))))
+        .Should().Throw<FormatException>();
+    }
+
+    [Theory]
+    [InlineData("[1.0;1.0]", 1.0, 1.0, true)]
+    [InlineData("[ 0.0 ; 0.0 ]", 0.0, 0.0, true)]
+    [InlineData("[-1.0;1.1 ]", -1.0, 1.1, true)]
+    [InlineData("[-1.1; -0.01]", -1.1, -0.01, true)]
+    [InlineData("[ 1e18;1.1e18]", 1e18, 1.1e18, true)]
+    [InlineData("[1.0E18 ;+1.0E18]", 1e18, 1e18, true)]
+
+    [InlineData(null, 0, 0, false)]
+    [InlineData("", 0, 0, false)]
+    [InlineData("1.0", 0, 0, false)]
+    [InlineData("[1.0", 0, 0, false)]
+    [InlineData("[1.0]", 0, 0, false)]
+    [InlineData("[1.0;]", 0, 0, false)]
+    [InlineData("[1.0;a]", 0, 0, false)]
+    [InlineData("[1.0;1.0a]", 0, 0, false)]
+    [InlineData("[1;0;1,0]", 0, 0, false)]
+    [InlineData("[1.0;;1.0]", 0, 0, false)]
+    [InlineData("[1.0,1.0]", 0, 0, false)]
+    public void TryParse(string str, double min, double max, bool expected)
+    {
+        //ACT
+        var result = Interval.TryParse(str, CultureInfo.GetCultureInfo("en-US"), out var sut);
+        //ASSERT
+        result.Should().Be(expected);
+        if (expected)
+        {
+            sut.Min.Should().Be(min);
+            sut.Max.Should().Be(max);
+        }
+    }
 
 
 }

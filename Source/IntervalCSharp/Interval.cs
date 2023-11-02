@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Numerics;
 using System.Text.RegularExpressions;
 
@@ -47,9 +48,15 @@ public record struct Interval<T>
     public Interval(T min, T max)
     {
         if (max < min)
-            throw new InvalidOperationException("Cannot define interval");
-        Min = min;
-        Max = max;
+        {
+            Min = max;
+            Max = min;
+        }
+        else
+        {
+            Min = min;
+            Max = max;
+        }
     }
 
     //Utility properties
@@ -134,9 +141,9 @@ public record struct Interval<T>
         }
     }
     public static Interval<T> operator --(Interval<T> value)
-        => new(value.Min - T.One, value.Max - T.One);
+        => value - One;
     public static Interval<T> operator ++(Interval<T> value)
-        => new(value.Min + T.One, value.Max + T.One);
+        => value + One;
     public static Interval<T> operator +(Interval<T> value)
         => value;
     public static Interval<T> operator -(Interval<T> value)
@@ -147,26 +154,36 @@ public record struct Interval<T>
        => left is null ? right is null
        : right is null ? false
        : left.Value.Min == right.Value.Min && left.Value.Max == right.Value.Max;
+
     public static bool operator !=(Interval<T>? left, Interval<T>? right)
         => !(left == right);
+
     public static bool operator >(Interval<T> left, Interval<T> right)
         => left.Min > right.Min && left.Max > right.Max;
+
     public static bool operator >=(Interval<T> left, Interval<T> right)
         => left > right || left == right;
+
     public static bool operator <(Interval<T> left, Interval<T> right)
         => left.Min < right.Min && left.Max < right.Max;
+
     public static bool operator <=(Interval<T> left, Interval<T> right)
         => left < right || left == right;
 
     //Explicit conversion operators
-    public static explicit operator Interval<T>(T num)
-        => new Interval<T>(num);
+    public static implicit operator Interval<T>(T num)
+        => new(num);
+
+    public static implicit operator Interval<T>(Tuple<T, T> num)
+        => new(num.Item1, num.Item2);
 
     //Utility methods
     public bool HasZero
         => Min <= T.Zero && Max >= T.Zero;
+
     public static bool IsZero(Interval<T> value)
         => value == Interval<T>.Zero;
+
     public static Interval<T> Abs(Interval<T> value)
     {
         var min = T.Abs(value.Min);
@@ -180,6 +197,7 @@ public record struct Interval<T>
     }
     public int CompareTo(Interval<T> other)
         => this < other ? -1 : this > other ? 1 : 0;
+
     public int CompareTo(object? obj)
         => obj switch
         {
@@ -192,19 +210,32 @@ public record struct Interval<T>
     //Parsing methods
     public override string ToString()
         => $"[{Min};{Max}]";
+
     public string ToString(string? format, IFormatProvider? formatProvider)
         => $"[{Min.ToString(format, formatProvider)};{Max.ToString(format, formatProvider)}]";
+
+    public static Interval<T> Parse(string s)
+        => Parse(s, CultureInfo.CurrentCulture);
+
     public static Interval<T> Parse(string s, IFormatProvider? provider)
     {
-        var rgx = _Template.Match(s);
-        if (!rgx.Success)
-            throw new ArgumentException("Couldn't parse string as Interval.");
+        if (string.IsNullOrWhiteSpace(s))
+            throw new FormatException("Cannot parse empty or null string as Interval.");
 
-        T min = T.Parse(rgx.Groups[0].Value, provider);
-        T max = T.Parse(rgx.Groups[1].Value, provider);
+        var rgx = _Template.Match(s);
+        
+        if (!rgx.Success || rgx.Groups.Count != 3)
+            throw new FormatException("Couldn't parse string as Interval.");
+
+        T min = T.Parse(rgx.Groups[1].ValueSpan, provider);
+        T max = T.Parse(rgx.Groups[2].ValueSpan, provider);
 
         return new Interval<T>(min, max);
     }
+
+    public static bool TryParse([NotNullWhen(true)] string? s, [MaybeNullWhen(false)] out Interval<T> result)
+        => TryParse(s, CultureInfo.CurrentCulture, out result);
+
     public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, [MaybeNullWhen(false)] out Interval<T> result)
     {
         result = Zero;
@@ -214,13 +245,13 @@ public record struct Interval<T>
 
         var rgx = _Template.Match(s);
 
-        if (!rgx.Success)
+        if (!rgx.Success || rgx.Groups.Count != 3)
             return false;
 
-        if (!T.TryParse(rgx.Groups[0].Value, provider, out T min))
+        if (!T.TryParse(rgx.Groups[1].ValueSpan, provider, out T min))
             return false;
 
-        if (!T.TryParse(rgx.Groups[1].Value, provider, out T max))
+        if (!T.TryParse(rgx.Groups[2].ValueSpan, provider, out T max))
             return false;
 
         result = new Interval<T>(min, max);
@@ -233,5 +264,5 @@ public record struct Interval<T>
     internal static readonly T _TTwo = T.One + T.One;
     internal static readonly Interval<T> _Zero = new(T.Zero);
     internal static readonly Interval<T> _One = new(T.One);
-    internal static readonly Regex _Template = new Regex(@"^\\[(.+)\\;(.+)\\]$");//regex for: [1;2] [0.111;3] [0;0,001] [1e-4;2] [0;3E12]
+    internal static readonly Regex _Template = new Regex(@"^\[(.+)\;(.+)\]$");//regex for: [1;2] [0.111;3] [0;0,001] [1e-4;2] [0;3E12]
 }
