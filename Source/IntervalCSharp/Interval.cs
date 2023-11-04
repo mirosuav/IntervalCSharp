@@ -154,7 +154,6 @@ public record struct Interval<T>
        => left is null ? right is null
        : right is null ? false
        : left.Value.Min == right.Value.Min && left.Value.Max == right.Value.Max;
-
     public static bool operator !=(Interval<T>? left, Interval<T>? right)
         => !(left == right);
 
@@ -171,11 +170,14 @@ public record struct Interval<T>
         => left < right || left == right;
 
     //Explicit conversion operators
+    public static implicit operator Interval<T>?(T? num)
+        => num is null ? null : new(num.Value);
+
     public static implicit operator Interval<T>(T num)
         => new(num);
 
-    public static implicit operator Interval<T>(Tuple<T, T> num)
-        => new(num.Item1, num.Item2);
+    public static implicit operator Interval<T>?(Tuple<T, T> num)
+        => num is null ? null : new(num.Item1, num.Item2);
 
     //Utility methods
     public bool HasZero
@@ -195,8 +197,15 @@ public record struct Interval<T>
             _ => new(MathExtensions.Min(min, max), MathExtensions.Max(min, max))
         };
     }
+
     public int CompareTo(Interval<T> other)
         => this < other ? -1 : this > other ? 1 : 0;
+
+    public bool Contains(Interval<T> other)
+        => Min <= other.Min && Max >= other.Max;
+
+    public bool Ovelraps(Interval<T> other)
+        => Min <= other.Max && other.Min <= Max;
 
     public int CompareTo(object? obj)
         => obj switch
@@ -215,7 +224,7 @@ public record struct Interval<T>
         => $"[{Min.ToString(format, formatProvider)};{Max.ToString(format, formatProvider)}]";
 
     public static Interval<T> Parse(string s)
-        => Parse(s, CultureInfo.CurrentCulture);
+        => Parse(s, NumberFormatInfo.CurrentInfo);
 
     public static Interval<T> Parse(string s, IFormatProvider? provider)
     {
@@ -223,7 +232,7 @@ public record struct Interval<T>
             throw new FormatException("Cannot parse empty or null string as Interval.");
 
         var rgx = _Template.Match(s);
-        
+
         if (!rgx.Success || rgx.Groups.Count != 3)
             throw new FormatException("Couldn't parse string as Interval.");
 
@@ -234,7 +243,7 @@ public record struct Interval<T>
     }
 
     public static bool TryParse([NotNullWhen(true)] string? s, [MaybeNullWhen(false)] out Interval<T> result)
-        => TryParse(s, CultureInfo.CurrentCulture, out result);
+        => TryParse(s, NumberFormatInfo.CurrentInfo, out result);
 
     public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, [MaybeNullWhen(false)] out Interval<T> result)
     {

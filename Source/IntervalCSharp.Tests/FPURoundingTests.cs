@@ -41,6 +41,26 @@ public class FPURoundingTests
 
     }
 
+
+    [Theory]
+    [InlineData(0.2, 2.2)]
+    [InlineData(2345678901234567890, 8765432109876543210)]
+    [InlineData(1e308, 1e308)]
+    public void AddDoubles_RoundedDown_IsDifferentThanRoundedUp(double d1, double d2)
+    {
+        //ACT
+        FPUControl.SetRoundingDOWN();
+        double rDown = d1 + d2;
+
+        FPUControl.SetRoundingUP();
+        double rUp = d1 + d2;
+
+        //ASSERT
+        rDown.Should().BeLessThan(rUp);
+    }
+
+
+
     [Theory]
     [InlineData(FPUControl.RoundingMode.Truncate)]
     [InlineData(FPUControl.RoundingMode.Up)]
