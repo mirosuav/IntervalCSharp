@@ -23,9 +23,6 @@ public record struct Interval<T>
         ISubtractionOperators<Interval<T>, Interval<T>, Interval<T>>,
         IUnaryPlusOperators<Interval<T>, Interval<T>>,
         IUnaryNegationOperators<Interval<T>, Interval<T>>,
-        IComparisonOperators<Interval<T>, Interval<T>, bool>,
-        IComparable<Interval<T>>,
-        IComparable,
         IFormattable
     where T : struct //it expects float, double or decimal
             , INumberBase<T>
@@ -41,7 +38,7 @@ public record struct Interval<T>
     /// </summary>
     public T Max { get; }
 
-    //Constructors
+
     public Interval() : this(T.Zero) { }
     public Interval(T point) : this(point, point) { }
     public Interval(Interval<T> other) : this(other.Min, other.Max) { }
@@ -59,8 +56,10 @@ public record struct Interval<T>
         }
     }
 
-    //Utility properties
+
     public bool IsPoint => Min == Max;
+    public bool IsZero => this == Zero;
+    public bool HasZero => Min <= T.Zero && Max >= T.Zero;
     public T Width => Max - Min;
     public T Radius => (Max - Min) / _TTwo;
     public T Middle => (Min + Max) / _TTwo;
@@ -157,17 +156,6 @@ public record struct Interval<T>
     public static bool operator !=(Interval<T>? left, Interval<T>? right)
         => !(left == right);
 
-    public static bool operator >(Interval<T> left, Interval<T> right)
-        => left.Min > right.Min && left.Max > right.Max;
-
-    public static bool operator >=(Interval<T> left, Interval<T> right)
-        => left > right || left == right;
-
-    public static bool operator <(Interval<T> left, Interval<T> right)
-        => left.Min < right.Min && left.Max < right.Max;
-
-    public static bool operator <=(Interval<T> left, Interval<T> right)
-        => left < right || left == right;
 
     //Explicit conversion operators
     public static implicit operator Interval<T>?(T? num)
@@ -179,42 +167,6 @@ public record struct Interval<T>
     public static implicit operator Interval<T>?(Tuple<T, T> num)
         => num is null ? null : new(num.Item1, num.Item2);
 
-    //Utility methods
-    public bool HasZero
-        => Min <= T.Zero && Max >= T.Zero;
-
-    public static bool IsZero(Interval<T> value)
-        => value == Interval<T>.Zero;
-
-    public static Interval<T> Abs(Interval<T> value)
-    {
-        var min = T.Abs(value.Min);
-        var max = T.Abs(value.Max);
-
-        return value switch
-        {
-            { HasZero: true } => new(T.Zero, MathExtensions.Max(min, max)),
-            _ => new(MathExtensions.Min(min, max), MathExtensions.Max(min, max))
-        };
-    }
-
-    public int CompareTo(Interval<T> other)
-        => this < other ? -1 : this > other ? 1 : 0;
-
-    public bool Contains(Interval<T> other)
-        => Min <= other.Min && Max >= other.Max;
-
-    public bool Ovelraps(Interval<T> other)
-        => Min <= other.Max && other.Min <= Max;
-
-    public int CompareTo(object? obj)
-        => obj switch
-        {
-            null => 1,
-            Interval<T> right => this.CompareTo(right),
-            T point => this.CompareTo(new(point)),
-            _ => throw new ArgumentException($"Type {obj.GetType().Name} is not comparable to {typeof(Interval<T>)}")
-        };
 
     //Parsing methods
     public override string ToString()
@@ -268,6 +220,41 @@ public record struct Interval<T>
         return true;
     }
 
+
+    public static Interval<T> Parse(ReadOnlySpan<char> s, NumberStyles style, IFormatProvider? provider)
+    {
+        throw new NotImplementedException();
+    }
+
+    public static Interval<T> Parse(string s, NumberStyles style, IFormatProvider? provider)
+    {
+        throw new NotImplementedException();
+    }
+
+    public static bool TryParse(ReadOnlySpan<char> s, NumberStyles style, IFormatProvider? provider, [MaybeNullWhen(false)] out Interval<T> result)
+    {
+        throw new NotImplementedException();
+    }
+
+    public static bool TryParse([NotNullWhen(true)] string? s, NumberStyles style, IFormatProvider? provider, [MaybeNullWhen(false)] out Interval<T> result)
+    {
+        throw new NotImplementedException();
+    }
+
+    public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
+    {
+        throw new NotImplementedException();
+    }
+
+    public static Interval<T> Parse(ReadOnlySpan<char> s, IFormatProvider? provider)
+    {
+        throw new NotImplementedException();
+    }
+
+    public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, [MaybeNullWhen(false)] out Interval<T> result)
+    {
+        throw new NotImplementedException();
+    }
 
     //Constants
     internal static readonly T _TTwo = T.One + T.One;

@@ -51,6 +51,7 @@ public class IntervalTests
     [InlineData(0.0)]
     [InlineData(-1.1)]
     [InlineData(1e10)]
+    [InlineData(1e308)]
     public void ConstructorPoint(double point)
     {
         //ACT
@@ -58,6 +59,61 @@ public class IntervalTests
         //ASSERT
         sut.Min.Should().Be(point);
         sut.Max.Should().Be(point);
+    }
+
+    [Theory]
+    [InlineData(1.0)]
+    [InlineData(0.0)]
+    [InlineData(-1.1)]
+    [InlineData(1e10)]
+    [InlineData(1e308)]
+    public void ImplicitOperatorNumber(double number)
+    {
+        //ACT
+        Interval sut = number;
+        //ASSERT
+        sut.Min.Should().Be(number);
+        sut.Max.Should().Be(number);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData(1.0)]
+    [InlineData(0.0)]
+    [InlineData(-1.1)]
+    [InlineData(1e10)]
+    [InlineData(1e308)]
+    public void ImplicitOperatorNullableNumber(double? number)
+    {
+        //ACT
+        Interval? sut = number;
+        //ASSERT
+        if (number is null)
+        {
+            sut.Should().BeNull();
+        }
+        else
+        {
+            sut.Should().NotBeNull();
+            sut.Value.Min.Should().Be(number);
+            sut.Value.Max.Should().Be(number);
+        }
+    }
+
+    [Fact]
+    public void ImplicitOperatorTupleNumber()
+    {
+        //ACT 1
+        Interval? sut = (Tuple<double, double>)null;
+        sut.Should().BeNull();
+
+        //ACT 2
+        var t = Tuple.Create(1.0, 2.0);
+        sut = t;
+        sut.Should().NotBeNull();
+        sut.Value.Min.Should().Be(t.Item1);
+        sut.Value.Max.Should().Be(t.Item2);
+
     }
 
     [Fact]
@@ -225,7 +281,7 @@ public class IntervalTests
         //ARRANGE
         var initial = new Interval(min, max);
         //ACT
-        var sut = Interval.IsZero(initial);
+        var sut = initial.IsZero;
         //ASSERT
         sut.Should().Be(min == 0.0 && max == 0.0);
     }
