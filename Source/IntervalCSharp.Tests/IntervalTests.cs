@@ -578,8 +578,12 @@ public class IntervalTests
     [Theory]
     [InlineData(null)]
     [InlineData("")]
+    [InlineData(";8")]
     [InlineData("1.0")]
+    [InlineData("1;0")]
     [InlineData("[1.0")]
+    [InlineData("[1;0")]
+    [InlineData("1;0]")]
     [InlineData("[1.0]")]
     [InlineData("[1.0;]")]
     [InlineData("[1.0;a]")]
@@ -591,7 +595,7 @@ public class IntervalTests
     {
         //ACT
         ((Action)(() => Interval.Parse(str, formatUS)))
-        .Should().Throw<FormatException>();
+        .Should().Throw<IntervalFormatExceptions>();
     }
 
     [Theory]
@@ -625,6 +629,7 @@ public class IntervalTests
             sut.Max.Should().Be(max);
         }
     }
+
 
 
 }

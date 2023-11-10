@@ -167,36 +167,31 @@ public record struct Interval<T>
     public static implicit operator Interval<T>?(Tuple<T, T> num)
         => num is null ? null : new(num.Item1, num.Item2);
 
-
     //Parsing methods
-    public override string ToString()
-        => $"[{Min};{Max}]";
-
+    public override string ToString() 
+        => $"{OpeningBracket}{Min}{Separator}{Max}{ClosingBracket}";
     public string ToString(string? format, IFormatProvider? formatProvider)
-        => $"[{Min.ToString(format, formatProvider)};{Max.ToString(format, formatProvider)}]";
+        => $"{OpeningBracket}{Min.ToString(format, formatProvider)}{Separator}{Max.ToString(format, formatProvider)}{ClosingBracket}";
 
     public static Interval<T> Parse(string s)
         => Parse(s, NumberFormatInfo.CurrentInfo);
-
     public static Interval<T> Parse(string s, IFormatProvider? provider)
     {
         if (string.IsNullOrWhiteSpace(s))
-            throw new FormatException("Cannot parse empty or null string as Interval.");
+            throw IntervalFormatExceptions.CannotParseAsInterval;
 
         var rgx = _Template.Match(s);
 
         if (!rgx.Success || rgx.Groups.Count != 3)
-            throw new FormatException("Couldn't parse string as Interval.");
+            throw IntervalFormatExceptions.CannotParseAsInterval;
 
         T min = T.Parse(rgx.Groups[1].ValueSpan, provider);
         T max = T.Parse(rgx.Groups[2].ValueSpan, provider);
 
         return new Interval<T>(min, max);
     }
-
     public static bool TryParse([NotNullWhen(true)] string? s, [MaybeNullWhen(false)] out Interval<T> result)
         => TryParse(s, NumberFormatInfo.CurrentInfo, out result);
-
     public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, [MaybeNullWhen(false)] out Interval<T> result)
     {
         result = Zero;
@@ -221,44 +216,13 @@ public record struct Interval<T>
     }
 
 
-    public static Interval<T> Parse(ReadOnlySpan<char> s, NumberStyles style, IFormatProvider? provider)
-    {
-        throw new NotImplementedException();
-    }
-
-    public static Interval<T> Parse(string s, NumberStyles style, IFormatProvider? provider)
-    {
-        throw new NotImplementedException();
-    }
-
-    public static bool TryParse(ReadOnlySpan<char> s, NumberStyles style, IFormatProvider? provider, [MaybeNullWhen(false)] out Interval<T> result)
-    {
-        throw new NotImplementedException();
-    }
-
-    public static bool TryParse([NotNullWhen(true)] string? s, NumberStyles style, IFormatProvider? provider, [MaybeNullWhen(false)] out Interval<T> result)
-    {
-        throw new NotImplementedException();
-    }
-
-    public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
-    {
-        throw new NotImplementedException();
-    }
-
-    public static Interval<T> Parse(ReadOnlySpan<char> s, IFormatProvider? provider)
-    {
-        throw new NotImplementedException();
-    }
-
-    public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, [MaybeNullWhen(false)] out Interval<T> result)
-    {
-        throw new NotImplementedException();
-    }
-
     //Constants
+    internal const char Separator = ';';
+    internal const char OpeningBracket = '[';
+    internal const char ClosingBracket = ']';
     internal static readonly T _TTwo = T.One + T.One;
     internal static readonly Interval<T> _Zero = new(T.Zero);
     internal static readonly Interval<T> _One = new(T.One);
-    internal static readonly Regex _Template = new Regex(@"^\[(.+)\;(.+)\]$");//regex for: [1;2] [0.111;3] [0;0,001] [1e-4;2] [0;3E12]
+    internal static readonly Regex _Template 
+        = new Regex($@"^\{OpeningBracket}([0-9eE.,'\-\+ ]+)\{Separator}([0-9eE.,'\-\+ ]+)\{ClosingBracket}$");
 }

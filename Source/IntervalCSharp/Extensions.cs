@@ -1,7 +1,7 @@
 ﻿using System.Numerics;
 
 namespace IntervalCSharp;
-public static class IntervalExtensions
+public static class Extensions
 {
     /// <summary>
     /// Check contains given interval entirely with inclusive bounds
