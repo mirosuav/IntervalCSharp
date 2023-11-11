@@ -1,17 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace IntervalCSharp;
 
-namespace IntervalCSharp;
+internal static class IntervalExceptions
+{
+    internal static readonly IntervalFormatExceptions IntervalStringParsingError
+        = new IntervalFormatExceptions("Could not parse string as Interval.");
+
+    internal static readonly DivideByZeroException DividingByIntervalContainingZero
+        = new DivideByZeroException("Division by interval containing Zero.");
+}
 
 public class IntervalFormatExceptions : FormatException
 {
-    public static readonly IntervalFormatExceptions CannotParseAsInterval 
-        = new IntervalFormatExceptions("Couldn't parse string as Interval.");
-
     public IntervalFormatExceptions(string? message) : base(message)
     {
     }

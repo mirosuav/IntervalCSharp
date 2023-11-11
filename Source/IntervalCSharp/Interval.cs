@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.Contracts;
 using System.Globalization;
 using System.Numerics;
 using System.Text.RegularExpressions;
@@ -7,7 +8,7 @@ using System.Text.RegularExpressions;
 namespace IntervalCSharp;
 
 /// <summary>
-/// Interval number defined by Min and Max inclusive bounds. Implements interval arithmetic operations. 
+/// Interval number defined by inclusive Min and Max bounds. Implements basic interval arithmetic operations. 
 /// </summary>
 /// <typeparam name="T">Numeric type of the interval boundaries.</typeparam>
 public record struct Interval<T>
@@ -24,20 +25,13 @@ public record struct Interval<T>
         IUnaryPlusOperators<Interval<T>, Interval<T>>,
         IUnaryNegationOperators<Interval<T>, Interval<T>>,
         IFormattable
-    where T : struct //it expects float, double or decimal
+    where T : struct 
             , INumberBase<T>
             , IComparisonOperators<T, T, bool>
             , IFormattable
 {
-    /// <summary>
-    /// Interval lower inclusive bound
-    /// </summary>
-    public T Min { get; }
-    /// <summary>
-    /// Interval upper inclusive bound
-    /// </summary>
-    public T Max { get; }
-
+    public readonly T Min;
+    public readonly T Max;
 
     public Interval() : this(T.Zero) { }
     public Interval(T point) : this(point, point) { }
@@ -69,6 +63,7 @@ public record struct Interval<T>
     public static Interval<T> MultiplicativeIdentity => Interval<T>.One;
 
     //Basic arithmetic operators
+    [Pure]
     public static Interval<T> operator +(Interval<T> left, Interval<T> right)
     {
         try
@@ -86,6 +81,7 @@ public record struct Interval<T>
             FPUControl.RevertRoundingMode();
         }
     }
+    [Pure]
     public static Interval<T> operator -(Interval<T> left, Interval<T> right)
     {
         try
@@ -103,6 +99,7 @@ public record struct Interval<T>
             FPUControl.RevertRoundingMode();
         }
     }
+    [Pure]
     public static Interval<T> operator *(Interval<T> left, Interval<T> right)
     {
         try
@@ -120,10 +117,11 @@ public record struct Interval<T>
             FPUControl.RevertRoundingMode();
         }
     }
+    [Pure]
     public static Interval<T> operator /(Interval<T> left, Interval<T> right)
     {
         if (right.HasZero)
-            throw new DivideByZeroException("Division by interval containing Zero.");
+            throw IntervalExceptions.DividingByIntervalContainingZero;
         try
         {
             FPUControl.SetRoundingDOWN();
@@ -139,20 +137,26 @@ public record struct Interval<T>
             FPUControl.RevertRoundingMode();
         }
     }
+    [Pure]
     public static Interval<T> operator --(Interval<T> value)
         => value - One;
+    [Pure]
     public static Interval<T> operator ++(Interval<T> value)
         => value + One;
+    [Pure]
     public static Interval<T> operator +(Interval<T> value)
         => value;
+    [Pure]
     public static Interval<T> operator -(Interval<T> value)
         => new(-value.Max, -value.Min);
 
     //Comparable operators
+    [Pure]
     public static bool operator ==(Interval<T>? left, Interval<T>? right)
        => left is null ? right is null
        : right is null ? false
        : left.Value.Min == right.Value.Min && left.Value.Max == right.Value.Max;
+    [Pure]
     public static bool operator !=(Interval<T>? left, Interval<T>? right)
         => !(left == right);
 
@@ -160,16 +164,16 @@ public record struct Interval<T>
     //Explicit conversion operators
     public static implicit operator Interval<T>?(T? num)
         => num is null ? null : new(num.Value);
-
     public static implicit operator Interval<T>(T num)
         => new(num);
-
     public static implicit operator Interval<T>?(Tuple<T, T> num)
         => num is null ? null : new(num.Item1, num.Item2);
 
     //Parsing methods
+    [Pure]
     public override string ToString() 
         => $"{OpeningBracket}{Min}{Separator}{Max}{ClosingBracket}";
+    [Pure]
     public string ToString(string? format, IFormatProvider? formatProvider)
         => $"{OpeningBracket}{Min.ToString(format, formatProvider)}{Separator}{Max.ToString(format, formatProvider)}{ClosingBracket}";
 
@@ -178,12 +182,12 @@ public record struct Interval<T>
     public static Interval<T> Parse(string s, IFormatProvider? provider)
     {
         if (string.IsNullOrWhiteSpace(s))
-            throw IntervalFormatExceptions.CannotParseAsInterval;
+            throw IntervalExceptions.IntervalStringParsingError;
 
         var rgx = _Template.Match(s);
 
         if (!rgx.Success || rgx.Groups.Count != 3)
-            throw IntervalFormatExceptions.CannotParseAsInterval;
+            throw IntervalExceptions.IntervalStringParsingError;
 
         T min = T.Parse(rgx.Groups[1].ValueSpan, provider);
         T max = T.Parse(rgx.Groups[2].ValueSpan, provider);

@@ -3,7 +3,7 @@
 namespace IntervalCSharp;
 public static class MathExtensions
 {
-    static readonly InvalidOperationException NoParamsEx = new("Empty parameters array provided.");
+    internal static readonly InvalidOperationException NoParamsEx = new("Empty parameters array provided.");
     public static TNum Min<TNum>(params TNum[] numbers) where TNum : IComparisonOperators<TNum, TNum, bool>
     {
         if (numbers is null or { Length: 0 })
