@@ -4,7 +4,7 @@ namespace IntervalCSharp.Helpers;
 public static class MathHelper
 {
     internal static readonly InvalidOperationException NoParamsEx = new("Empty parameters array provided.");
-    public static TNum Min<TNum>(params TNum[] numbers) where TNum : IComparisonOperators<TNum, TNum, bool>
+    public static T Min<T>(params T[] numbers) where T : IComparisonOperators<T, T, bool>
     {
         if (numbers is null or { Length: 0 })
             throw NoParamsEx;
@@ -17,7 +17,7 @@ public static class MathHelper
         }
         return numbers[minIDx];
     }
-    public static TNum Max<TNum>(params TNum[] numbers) where TNum : IComparisonOperators<TNum, TNum, bool>
+    public static T Max<T>(params T[] numbers) where T : IComparisonOperators<T, T, bool>
     {
         if (numbers is null or { Length: 0 })
             throw NoParamsEx;
@@ -30,6 +30,4 @@ public static class MathHelper
         }
         return numbers[maxIDx];
     }
-    public static bool IsEven(this int number) => number % 2 == 0;
-    public static bool IsOdd(this int number) => number % 2 == 0;
 }

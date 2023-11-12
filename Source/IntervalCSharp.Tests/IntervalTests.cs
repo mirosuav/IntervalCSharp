@@ -21,8 +21,8 @@ public class IntervalTests
         //ACT
         var sut = Interval.Zero;
         //ASSERT
-        sut.Min.Should().Be(0.0);
-        sut.Max.Should().Be(0.0);
+        sut.Inf.Should().Be(0.0);
+        sut.Sup.Should().Be(0.0);
     }
 
     [Fact]
@@ -31,8 +31,8 @@ public class IntervalTests
         //ACT
         var sut = Interval.One;
         //ASSERT
-        sut.Min.Should().Be(1.0);
-        sut.Max.Should().Be(1.0);
+        sut.Inf.Should().Be(1.0);
+        sut.Sup.Should().Be(1.0);
     }
 
     //Constructors tests
@@ -57,8 +57,8 @@ public class IntervalTests
         //ACT
         var sut = new Interval(point);
         //ASSERT
-        sut.Min.Should().Be(point);
-        sut.Max.Should().Be(point);
+        sut.Inf.Should().Be(point);
+        sut.Sup.Should().Be(point);
     }
 
     [Theory]
@@ -72,8 +72,8 @@ public class IntervalTests
         //ACT
         Interval sut = number;
         //ASSERT
-        sut.Min.Should().Be(number);
-        sut.Max.Should().Be(number);
+        sut.Inf.Should().Be(number);
+        sut.Sup.Should().Be(number);
     }
 
     [Theory]
@@ -95,8 +95,8 @@ public class IntervalTests
         else
         {
             sut.Should().NotBeNull();
-            sut.Value.Min.Should().Be(number);
-            sut.Value.Max.Should().Be(number);
+            sut.Value.Inf.Should().Be(number);
+            sut.Value.Sup.Should().Be(number);
         }
     }
 
@@ -111,8 +111,8 @@ public class IntervalTests
         var t = Tuple.Create(1.0, 2.0);
         sut = t;
         sut.Should().NotBeNull();
-        sut.Value.Min.Should().Be(t.Item1);
-        sut.Value.Max.Should().Be(t.Item2);
+        sut.Value.Inf.Should().Be(t.Item1);
+        sut.Value.Sup.Should().Be(t.Item2);
 
     }
 
@@ -121,8 +121,8 @@ public class IntervalTests
     {
         var sut = new Interval(double.MinValue);
         //ASSERT
-        sut.Min.Should().Be(double.MinValue);
-        sut.Max.Should().Be(double.MinValue);
+        sut.Inf.Should().Be(double.MinValue);
+        sut.Sup.Should().Be(double.MinValue);
     }
 
     [Fact]
@@ -130,8 +130,8 @@ public class IntervalTests
     {
         var sut = new Interval(double.MaxValue);
         //ASSERT
-        sut.Min.Should().Be(double.MaxValue);
-        sut.Max.Should().Be(double.MaxValue);
+        sut.Inf.Should().Be(double.MaxValue);
+        sut.Sup.Should().Be(double.MaxValue);
     }
 
     [Theory]
@@ -147,8 +147,8 @@ public class IntervalTests
         //ACT
         var sut = new Interval(min, max);
         //ASSERT
-        sut.Min.Should().Be(min);
-        sut.Max.Should().Be(max);
+        sut.Inf.Should().Be(min);
+        sut.Sup.Should().Be(max);
     }
 
     [Theory]
@@ -164,8 +164,8 @@ public class IntervalTests
         //ACT
         var sut = new Interval(max, min);
         //ASSERT
-        sut.Min.Should().Be(min);
-        sut.Max.Should().Be(max);
+        sut.Inf.Should().Be(min);
+        sut.Sup.Should().Be(max);
     }
 
 
@@ -181,8 +181,8 @@ public class IntervalTests
         //ACT
         var sut = new Interval(initial);
         //ASSERT
-        sut.Min.Should().Be(min);
-        sut.Max.Should().Be(max);
+        sut.Inf.Should().Be(min);
+        sut.Sup.Should().Be(max);
     }
 
     [Theory]
@@ -460,8 +460,8 @@ public class IntervalTests
         sut++;
 
         //ASSERT
-        sut.Min.Should().Be(min + 1.0);
-        sut.Max.Should().Be(max + 1.0);
+        sut.Inf.Should().Be(min + 1.0);
+        sut.Sup.Should().Be(max + 1.0);
     }
 
     [Theory]
@@ -503,8 +503,8 @@ public class IntervalTests
 
         //ASSERT
         result.Should().Be(sut);
-        result.Min.Should().Be(min);
-        result.Max.Should().Be(max);
+        result.Inf.Should().Be(min);
+        result.Sup.Should().Be(max);
     }
 
     [Theory]
@@ -523,8 +523,8 @@ public class IntervalTests
         var result = -sut;
 
         //ASSERT
-        result.Min.Should().Be(-max);
-        result.Max.Should().Be(-min);
+        result.Inf.Should().Be(-max);
+        result.Sup.Should().Be(-min);
     }
 
 
@@ -570,8 +570,8 @@ public class IntervalTests
         //ACT
         var sut = Interval.Parse(str, formatUS);
         //ASSERT
-        sut.Min.Should().Be(min);
-        sut.Max.Should().Be(max);
+        sut.Inf.Should().Be(min);
+        sut.Sup.Should().Be(max);
     }
 
 
@@ -625,8 +625,8 @@ public class IntervalTests
         result.Should().Be(expected);
         if (expected)
         {
-            sut.Min.Should().Be(min);
-            sut.Max.Should().Be(max);
+            sut.Inf.Should().Be(min);
+            sut.Sup.Should().Be(max);
         }
     }
 

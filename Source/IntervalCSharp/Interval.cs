@@ -26,42 +26,51 @@ public record struct Interval<T>
         IUnaryPlusOperators<Interval<T>, Interval<T>>,
         IUnaryNegationOperators<Interval<T>, Interval<T>>,
         IFormattable
-    where T : struct 
+    where T : struct
             , INumberBase<T>
             , IComparisonOperators<T, T, bool>
             , IFormattable
 {
-    public readonly T Min;
-    public readonly T Max;
+    /// <summary>
+    /// Infimum
+    /// </summary>
+    public readonly T Inf;
+
+    /// <summary>
+    /// Supremum
+    /// </summary>
+    public readonly T Sup;
 
     public Interval() : this(T.Zero) { }
     public Interval(T point) : this(point, point) { }
-    public Interval(Interval<T> other) : this(other.Min, other.Max) { }
+    public Interval(Interval<T> other) : this(other.Inf, other.Sup) { }
     public Interval(T min, T max)
     {
         if (max < min)
         {
-            Min = max;
-            Max = min;
+            Inf = max;
+            Sup = min;
         }
         else
         {
-            Min = min;
-            Max = max;
+            Inf = min;
+            Sup = max;
         }
     }
 
 
-    public bool IsPoint => Min == Max;
+    public bool IsPoint => Inf == Sup;
     public bool IsZero => this == Zero;
-    public bool HasZero => Min <= T.Zero && Max >= T.Zero;
-    public T Width => Max - Min;
-    public T Radius => (Max - Min) / _TTwo;
-    public T Middle => (Min + Max) / _TTwo;
+    public bool HasZero => Inf <= T.Zero && Sup >= T.Zero;
+    public T Width => Sup - Inf;
+    public T Radius => (Sup - Inf) / _TTwo;
+    public T Middle => (Inf + Sup) / _TTwo;
     public static Interval<T> Zero => _Zero;
     public static Interval<T> One => _One;
     public static Interval<T> AdditiveIdentity => Interval<T>.Zero;
     public static Interval<T> MultiplicativeIdentity => Interval<T>.One;
+
+    public static int Radix => throw new NotImplementedException();
 
     //Basic arithmetic operators
     [Pure]
@@ -70,10 +79,10 @@ public record struct Interval<T>
         try
         {
             FPURounding.Down();
-            T min = left.Min + right.Min;
+            T min = left.Inf + right.Inf;
 
             FPURounding.Up();
-            T max = left.Max + right.Max;
+            T max = left.Sup + right.Sup;
 
             return new Interval<T>(min, max);
         }
@@ -88,10 +97,10 @@ public record struct Interval<T>
         try
         {
             FPURounding.Down();
-            T min = left.Min - right.Max;
+            T min = left.Inf - right.Sup;
 
             FPURounding.Up();
-            T max = left.Max - right.Min;
+            T max = left.Sup - right.Inf;
 
             return new Interval<T>(min, max);
         }
@@ -106,10 +115,10 @@ public record struct Interval<T>
         try
         {
             FPURounding.Down();
-            T min = MathHelper.Min(left.Min * right.Min, left.Min * right.Max, left.Max * right.Min, left.Max * right.Max);
+            T min = MathHelper.Min(left.Inf * right.Inf, left.Inf * right.Sup, left.Sup * right.Inf, left.Sup * right.Sup);
 
             FPURounding.Up();
-            T max = MathHelper.Max(left.Min * right.Min, left.Min * right.Max, left.Max * right.Min, left.Max * right.Max);
+            T max = MathHelper.Max(left.Inf * right.Inf, left.Inf * right.Sup, left.Sup * right.Inf, left.Sup * right.Sup);
 
             return new Interval<T>(min, max);
         }
@@ -126,10 +135,10 @@ public record struct Interval<T>
         try
         {
             FPURounding.Down();
-            T min = MathHelper.Min(left.Min / right.Min, left.Min / right.Max, left.Max / right.Min, left.Max / right.Max);
+            T min = MathHelper.Min(left.Inf / right.Inf, left.Inf / right.Sup, left.Sup / right.Inf, left.Sup / right.Sup);
 
             FPURounding.Up();
-            T max = MathHelper.Max(left.Min / right.Min, left.Min / right.Max, left.Max / right.Min, left.Max / right.Max);
+            T max = MathHelper.Max(left.Inf / right.Inf, left.Inf / right.Sup, left.Sup / right.Inf, left.Sup / right.Sup);
 
             return new Interval<T>(min, max);
         }
@@ -149,14 +158,14 @@ public record struct Interval<T>
         => value;
     [Pure]
     public static Interval<T> operator -(Interval<T> value)
-        => new(-value.Max, -value.Min);
+        => new(-value.Sup, -value.Inf);
 
     //Comparable operators
     [Pure]
     public static bool operator ==(Interval<T>? left, Interval<T>? right)
        => left is null ? right is null
        : right is null ? false
-       : left.Value.Min == right.Value.Min && left.Value.Max == right.Value.Max;
+       : left.Value.Inf == right.Value.Inf && left.Value.Sup == right.Value.Sup;
     [Pure]
     public static bool operator !=(Interval<T>? left, Interval<T>? right)
         => !(left == right);
@@ -172,11 +181,11 @@ public record struct Interval<T>
 
     //Parsing methods
     [Pure]
-    public override string ToString() 
-        => $"{OpeningBracket}{Min}{Separator}{Max}{ClosingBracket}";
+    public override string ToString()
+        => $"{OpeningBracket}{Inf}{Separator}{Sup}{ClosingBracket}";
     [Pure]
     public string ToString(string? format, IFormatProvider? formatProvider)
-        => $"{OpeningBracket}{Min.ToString(format, formatProvider)}{Separator}{Max.ToString(format, formatProvider)}{ClosingBracket}";
+        => $"{OpeningBracket}{Inf.ToString(format, formatProvider)}{Separator}{Sup.ToString(format, formatProvider)}{ClosingBracket}";
 
     public static Interval<T> Parse(string s)
         => Parse(s, NumberFormatInfo.CurrentInfo);
@@ -228,6 +237,6 @@ public record struct Interval<T>
     internal static readonly T _TTwo = T.One + T.One;
     internal static readonly Interval<T> _Zero = new(T.Zero);
     internal static readonly Interval<T> _One = new(T.One);
-    internal static readonly Regex _Template 
+    internal static readonly Regex _Template
         = new Regex($@"^\{OpeningBracket}([0-9eE.,'\-\+ ]+)\{Separator}([0-9eE.,'\-\+ ]+)\{ClosingBracket}$");
 }

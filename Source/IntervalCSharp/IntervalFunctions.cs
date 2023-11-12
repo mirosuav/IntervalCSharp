@@ -9,16 +9,14 @@ public static class Functions
     {
         if (value.HasZero)
         {
-            return new(T.Zero, MathHelper.Max(T.Abs(value.Min), T.Abs(value.Max)));
+            return new(T.Zero, MathHelper.Max(T.Abs(value.Inf), T.Abs(value.Sup)));
         }
         else
-            return new Interval<T>(MathHelper.Min(T.Abs(value.Min), T.Abs(value.Max)), MathHelper.Max(T.Abs(value.Min), T.Abs(value.Max)));
+            return new Interval<T>(MathHelper.Min(T.Abs(value.Inf), T.Abs(value.Sup)), MathHelper.Max(T.Abs(value.Inf), T.Abs(value.Sup)));
     }
 
     public static Interval<T> Pow<T>(this Interval<T> value, T exponent)
-            where T : struct,
-        IComparisonOperators<T, T, bool>,
-        IPowerFunctions<T>
+            where T : struct, IComparisonOperators<T, T, bool>, IPowerFunctions<T>
     {
         if (T.IsNegative(exponent))
             return Interval<T>.One / value.Pow(-exponent);
@@ -27,25 +25,25 @@ public static class Functions
 
         try
         {
-            if (!T.IsEvenInteger(exponent) || value.Min >= T.Zero)
+            if (!T.IsEvenInteger(exponent) || value.Inf >= T.Zero)
             {
                 FPURounding.Down();
-                min = T.Pow(value.Min, exponent);
+                min = T.Pow(value.Inf, exponent);
                 FPURounding.Up();
-                max = T.Pow(value.Max, -exponent);
+                max = T.Pow(value.Sup, exponent);
             }
-            else if (T.IsEvenInteger(exponent) && value.Max <= T.Zero)
+            else if (T.IsEvenInteger(exponent) && value.Sup <= T.Zero)
             {
                 FPURounding.Down();
-                min = T.Pow(value.Min, -exponent);
+                max = T.Pow(value.Sup, exponent);
                 FPURounding.Up();
-                max = T.Pow(value.Max, exponent);
+                min = T.Pow(value.Inf, exponent);
             }
             else //if (T.IsEvenInteger(exponent) && value.HasZero)
             {
                 min = T.Zero;
                 FPURounding.Up();
-                max = T.Pow(MathHelper.Max(T.Abs(value.Min), T.Abs(value.Max)), exponent);
+                max = T.Pow(MathHelper.Max(T.Abs(value.Inf), T.Abs(value.Sup)), exponent);
             }
         }
         finally
