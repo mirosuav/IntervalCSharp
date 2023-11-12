@@ -1,12 +1,12 @@
 ﻿using System.Runtime.InteropServices;
 using System.Security;
 
-namespace IntervalCSharp;
+namespace IntervalCSharp.Helpers;
 
 /// <summary>
 /// Uses '_controlfp_s' function in C++ lib <see href="https://learn.microsoft.com/en-us/cpp/c-runtime-library/reference/controlfp-s?view=msvc-170"/>
 /// </summary>
-public static class FPUControl
+public static class FPURounding
 {
     /// <summary>
     /// Rounding mask to the FPU control word
@@ -25,19 +25,19 @@ public static class FPUControl
     }
 
     public static readonly RoundingMode InitialRoundingMode;
-    static FPUControl()
+    static FPURounding()
     {
         //Remember initial rounding mode at the start of program
-        InitialRoundingMode = GetRoundingMode();
+        InitialRoundingMode = Get();
     }
 
-    public static void SetRoundingNEAR() => SetRoundingMode(RoundingMode.Nearest);
-    public static void SetRoundingUP() => SetRoundingMode(RoundingMode.Up);
-    public static void SetRoundingDOWN() => SetRoundingMode(RoundingMode.Down);
-    public static void SetRoundingTRUNC() => SetRoundingMode(RoundingMode.Truncate);
-    public static void RevertRoundingMode() => SetRoundingMode(InitialRoundingMode);
+    public static void Near() => Set(RoundingMode.Nearest);
+    public static void Up() => Set(RoundingMode.Up);
+    public static void Down() => Set(RoundingMode.Down);
+    public static void Trunc() => Set(RoundingMode.Truncate);
+    public static void Reset() => Set(InitialRoundingMode);
 
-    public static RoundingMode GetRoundingMode()
+    public static RoundingMode Get()
     {
         uint _currentControl = 0;
         uint err = _controlfp_s(ref _currentControl, 0, 0);
@@ -47,7 +47,7 @@ public static class FPUControl
         return (RoundingMode)(_currentControl & RoundingMask);
     }
 
-    public static void SetRoundingMode(RoundingMode mode)
+    public static void Set(RoundingMode mode)
     {
         uint _currentControl = 0;
         uint err = _controlfp_s(ref _currentControl, (uint)mode, RoundingMask);

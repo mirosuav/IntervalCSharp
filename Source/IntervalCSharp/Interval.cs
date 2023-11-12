@@ -4,6 +4,7 @@ using System.Diagnostics.Contracts;
 using System.Globalization;
 using System.Numerics;
 using System.Text.RegularExpressions;
+using IntervalCSharp.Helpers;
 
 namespace IntervalCSharp;
 
@@ -68,17 +69,17 @@ public record struct Interval<T>
     {
         try
         {
-            FPUControl.SetRoundingDOWN();
+            FPURounding.Down();
             T min = left.Min + right.Min;
 
-            FPUControl.SetRoundingUP();
+            FPURounding.Up();
             T max = left.Max + right.Max;
 
             return new Interval<T>(min, max);
         }
         finally
         {
-            FPUControl.RevertRoundingMode();
+            FPURounding.Reset();
         }
     }
     [Pure]
@@ -86,17 +87,17 @@ public record struct Interval<T>
     {
         try
         {
-            FPUControl.SetRoundingDOWN();
+            FPURounding.Down();
             T min = left.Min - right.Max;
 
-            FPUControl.SetRoundingUP();
+            FPURounding.Up();
             T max = left.Max - right.Min;
 
             return new Interval<T>(min, max);
         }
         finally
         {
-            FPUControl.RevertRoundingMode();
+            FPURounding.Reset();
         }
     }
     [Pure]
@@ -104,17 +105,17 @@ public record struct Interval<T>
     {
         try
         {
-            FPUControl.SetRoundingDOWN();
-            T min = MathExtensions.Min(left.Min * right.Min, left.Min * right.Max, left.Max * right.Min, left.Max * right.Max);
+            FPURounding.Down();
+            T min = MathHelper.Min(left.Min * right.Min, left.Min * right.Max, left.Max * right.Min, left.Max * right.Max);
 
-            FPUControl.SetRoundingUP();
-            T max = MathExtensions.Max(left.Min * right.Min, left.Min * right.Max, left.Max * right.Min, left.Max * right.Max);
+            FPURounding.Up();
+            T max = MathHelper.Max(left.Min * right.Min, left.Min * right.Max, left.Max * right.Min, left.Max * right.Max);
 
             return new Interval<T>(min, max);
         }
         finally
         {
-            FPUControl.RevertRoundingMode();
+            FPURounding.Reset();
         }
     }
     [Pure]
@@ -124,17 +125,17 @@ public record struct Interval<T>
             throw IntervalExceptions.DividingByIntervalContainingZero;
         try
         {
-            FPUControl.SetRoundingDOWN();
-            T min = MathExtensions.Min(left.Min / right.Min, left.Min / right.Max, left.Max / right.Min, left.Max / right.Max);
+            FPURounding.Down();
+            T min = MathHelper.Min(left.Min / right.Min, left.Min / right.Max, left.Max / right.Min, left.Max / right.Max);
 
-            FPUControl.SetRoundingUP();
-            T max = MathExtensions.Max(left.Min / right.Min, left.Min / right.Max, left.Max / right.Min, left.Max / right.Max);
+            FPURounding.Up();
+            T max = MathHelper.Max(left.Min / right.Min, left.Min / right.Max, left.Max / right.Min, left.Max / right.Max);
 
             return new Interval<T>(min, max);
         }
         finally
         {
-            FPUControl.RevertRoundingMode();
+            FPURounding.Reset();
         }
     }
     [Pure]

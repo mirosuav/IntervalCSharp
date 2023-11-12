@@ -1,7 +1,7 @@
 ﻿using System.Numerics;
 
-namespace IntervalCSharp;
-public static class MathExtensions
+namespace IntervalCSharp.Helpers;
+public static class MathHelper
 {
     internal static readonly InvalidOperationException NoParamsEx = new("Empty parameters array provided.");
     public static TNum Min<TNum>(params TNum[] numbers) where TNum : IComparisonOperators<TNum, TNum, bool>
@@ -30,4 +30,6 @@ public static class MathExtensions
         }
         return numbers[maxIDx];
     }
+    public static bool IsEven(this int number) => number % 2 == 0;
+    public static bool IsOdd(this int number) => number % 2 == 0;
 }

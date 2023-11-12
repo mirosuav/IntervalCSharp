@@ -1,5 +1,5 @@
 ﻿using FluentAssertions;
-using IntervalCSharp;
+using IntervalCSharp.Helpers;
 using Xunit;
 
 namespace IntervalCSharp.Tests;
@@ -13,31 +13,31 @@ public class FPURoundingTests
     public void RoundedDown_IsDifferentThanROundedUp(double d1, double d2)
     {
         //ACT
-        var r1get = FPUControl.GetRoundingMode();
-        FPUControl.SetRoundingDOWN();
+        var r1get = FPURounding.Get();
+        FPURounding.Down();
         double rDown = d1 * d2;
 
-        var r2get = FPUControl.GetRoundingMode();
-        FPUControl.SetRoundingUP();
+        var r2get = FPURounding.Get();
+        FPURounding.Up();
         double rUp= d1 * d2;
 
-        var r3get = FPUControl.GetRoundingMode();
-        FPUControl.SetRoundingDOWN();
+        var r3get = FPURounding.Get();
+        FPURounding.Down();
         double rDown2 = d1 * d2;
 
-        var r4get = FPUControl.GetRoundingMode();
+        var r4get = FPURounding.Get();
 
         //ASSERT
         rDown2.Should().Be(rDown);
         rDown.Should().BeLessThan(rUp);
 
-        r2get.Should().Be(FPUControl.RoundingMode.Down);
-        r3get.Should().Be(FPUControl.RoundingMode.Up);
-        r4get.Should().Be(FPUControl.RoundingMode.Down);
+        r2get.Should().Be(FPURounding.RoundingMode.Down);
+        r3get.Should().Be(FPURounding.RoundingMode.Up);
+        r4get.Should().Be(FPURounding.RoundingMode.Down);
 
-        FPUControl.RevertRoundingMode();
+        FPURounding.Reset();
 
-        FPUControl.GetRoundingMode().Should().Be(FPUControl.InitialRoundingMode);
+        FPURounding.Get().Should().Be(FPURounding.InitialRoundingMode);
 
     }
 
@@ -49,10 +49,10 @@ public class FPURoundingTests
     public void AddDoubles_RoundedDown_IsDifferentThanRoundedUp(double d1, double d2)
     {
         //ACT
-        FPUControl.SetRoundingDOWN();
+        FPURounding.Down();
         double rDown = d1 + d2;
 
-        FPUControl.SetRoundingUP();
+        FPURounding.Up();
         double rUp = d1 + d2;
 
         //ASSERT
@@ -62,18 +62,18 @@ public class FPURoundingTests
 
 
     [Theory]
-    [InlineData(FPUControl.RoundingMode.Truncate)]
-    [InlineData(FPUControl.RoundingMode.Up)]
-    [InlineData(FPUControl.RoundingMode.Down)]
-    public void SetRoundingMode_SetsMode(FPUControl.RoundingMode mode)
+    [InlineData(FPURounding.RoundingMode.Truncate)]
+    [InlineData(FPURounding.RoundingMode.Up)]
+    [InlineData(FPURounding.RoundingMode.Down)]
+    public void SetRoundingMode_SetsMode(FPURounding.RoundingMode mode)
     {
         //ACT
-        FPUControl.SetRoundingMode(mode);
+        FPURounding.Set(mode);
 
         //ASSERT
-        FPUControl.GetRoundingMode().Should().Be(mode);
+        FPURounding.Get().Should().Be(mode);
 
-        FPUControl.RevertRoundingMode();
+        FPURounding.Reset();
     }
 
 
