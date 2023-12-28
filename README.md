@@ -4,7 +4,7 @@ Interval artihmetic type for C#
 
 
 
-#References
+## References
 
 - [IEEE Standard for Interval Arithmetic](https://standards.ieee.org/ieee/1788/4431/)
 
