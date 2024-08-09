@@ -9,10 +9,10 @@ public static class Functions
     {
         if (value.HasZero)
         {
-            return new(T.Zero, MathHelper.Max(T.Abs(value.Inf), T.Abs(value.Sup)));
+            return new(T.Zero, MathHelper.Max(T.Abs(value.Min), T.Abs(value.Max)));
         }
         else
-            return new Interval<T>(MathHelper.Min(T.Abs(value.Inf), T.Abs(value.Sup)), MathHelper.Max(T.Abs(value.Inf), T.Abs(value.Sup)));
+            return new Interval<T>(MathHelper.Min(T.Abs(value.Min), T.Abs(value.Max)), MathHelper.Max(T.Abs(value.Min), T.Abs(value.Max)));
     }
 
     public static Interval<T> Pow<T>(this Interval<T> value, T exponent)
@@ -25,25 +25,25 @@ public static class Functions
 
         try
         {
-            if (!T.IsEvenInteger(exponent) || value.Inf >= T.Zero)
+            if (!T.IsEvenInteger(exponent) || value.Min >= T.Zero)
             {
                 FPURounding.Down();
-                min = T.Pow(value.Inf, exponent);
+                min = T.Pow(value.Min, exponent);
                 FPURounding.Up();
-                max = T.Pow(value.Sup, exponent);
+                max = T.Pow(value.Max, exponent);
             }
-            else if (T.IsEvenInteger(exponent) && value.Sup <= T.Zero)
+            else if (T.IsEvenInteger(exponent) && value.Max <= T.Zero)
             {
                 FPURounding.Down();
-                max = T.Pow(value.Sup, exponent);
+                max = T.Pow(value.Max, exponent);
                 FPURounding.Up();
-                min = T.Pow(value.Inf, exponent);
+                min = T.Pow(value.Min, exponent);
             }
             else //if (T.IsEvenInteger(exponent) && value.HasZero)
             {
                 min = T.Zero;
                 FPURounding.Up();
-                max = T.Pow(MathHelper.Max(T.Abs(value.Inf), T.Abs(value.Sup)), exponent);
+                max = T.Pow(MathHelper.Max(T.Abs(value.Min), T.Abs(value.Max)), exponent);
             }
         }
         finally

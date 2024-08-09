@@ -13,18 +13,9 @@ namespace IntervalCSharp;
 /// </summary>
 /// <typeparam name="T">Numeric type of the interval boundaries.</typeparam>
 public record struct Interval<T>
-      : IAdditionOperators<Interval<T>, Interval<T>, Interval<T>>,
-        IAdditiveIdentity<Interval<T>, Interval<T>>,
-        IDecrementOperators<Interval<T>>,
-        IDivisionOperators<Interval<T>, Interval<T>, Interval<T>>,
-        IEquatable<Interval<T>>,
-        IEqualityOperators<Interval<T>, Interval<T>, bool>,
-        IIncrementOperators<Interval<T>>,
-        IMultiplicativeIdentity<Interval<T>, Interval<T>>,
-        IMultiplyOperators<Interval<T>, Interval<T>, Interval<T>>,
-        ISubtractionOperators<Interval<T>, Interval<T>, Interval<T>>,
-        IUnaryPlusOperators<Interval<T>, Interval<T>>,
-        IUnaryNegationOperators<Interval<T>, Interval<T>>,
+      : INumberBase<Interval<T>>,
+        ISpanFormattable,
+        ISpanParsable<Interval<T>>,
         IFormattable
     where T : struct
             , INumberBase<T>
@@ -34,37 +25,37 @@ public record struct Interval<T>
     /// <summary>
     /// Infimum
     /// </summary>
-    public readonly T Inf;
+    public readonly T Min;
 
     /// <summary>
     /// Supremum
     /// </summary>
-    public readonly T Sup;
+    public readonly T Max;
 
     public Interval() : this(T.Zero) { }
     public Interval(T point) : this(point, point) { }
-    public Interval(Interval<T> other) : this(other.Inf, other.Sup) { }
+    public Interval(Interval<T> other) : this(other.Min, other.Max) { }
     public Interval(T min, T max)
     {
         if (max < min)
         {
-            Inf = max;
-            Sup = min;
+            Min = max;
+            Max = min;
         }
         else
         {
-            Inf = min;
-            Sup = max;
+            Min = min;
+            Max = max;
         }
     }
 
 
-    public bool IsPoint => Inf == Sup;
+    public bool IsPoint => Min == Max;
     public bool IsZero => this == Zero;
-    public bool HasZero => Inf <= T.Zero && Sup >= T.Zero;
-    public T Width => Sup - Inf;
-    public T Radius => (Sup - Inf) / _TTwo;
-    public T Middle => (Inf + Sup) / _TTwo;
+    public bool HasZero => Min <= T.Zero && Max >= T.Zero;
+    public T Width => Max - Min;
+    public T Radius => (Max - Min) / _TTwo;
+    public T Middle => (Min + Max) / _TTwo;
     public static Interval<T> Zero => _Zero;
     public static Interval<T> One => _One;
     public static Interval<T> AdditiveIdentity => Interval<T>.Zero;
@@ -79,10 +70,10 @@ public record struct Interval<T>
         try
         {
             FPURounding.Down();
-            T min = left.Inf + right.Inf;
+            T min = left.Min + right.Min;
 
             FPURounding.Up();
-            T max = left.Sup + right.Sup;
+            T max = left.Max + right.Max;
 
             return new Interval<T>(min, max);
         }
@@ -97,10 +88,10 @@ public record struct Interval<T>
         try
         {
             FPURounding.Down();
-            T min = left.Inf - right.Sup;
+            T min = left.Min - right.Max;
 
             FPURounding.Up();
-            T max = left.Sup - right.Inf;
+            T max = left.Max - right.Min;
 
             return new Interval<T>(min, max);
         }
@@ -115,10 +106,10 @@ public record struct Interval<T>
         try
         {
             FPURounding.Down();
-            T min = MathHelper.Min(left.Inf * right.Inf, left.Inf * right.Sup, left.Sup * right.Inf, left.Sup * right.Sup);
+            T min = MathHelper.Min(left.Min * right.Min, left.Min * right.Max, left.Max * right.Min, left.Max * right.Max);
 
             FPURounding.Up();
-            T max = MathHelper.Max(left.Inf * right.Inf, left.Inf * right.Sup, left.Sup * right.Inf, left.Sup * right.Sup);
+            T max = MathHelper.Max(left.Min * right.Min, left.Min * right.Max, left.Max * right.Min, left.Max * right.Max);
 
             return new Interval<T>(min, max);
         }
@@ -135,10 +126,10 @@ public record struct Interval<T>
         try
         {
             FPURounding.Down();
-            T min = MathHelper.Min(left.Inf / right.Inf, left.Inf / right.Sup, left.Sup / right.Inf, left.Sup / right.Sup);
+            T min = MathHelper.Min(left.Min / right.Min, left.Min / right.Max, left.Max / right.Min, left.Max / right.Max);
 
             FPURounding.Up();
-            T max = MathHelper.Max(left.Inf / right.Inf, left.Inf / right.Sup, left.Sup / right.Inf, left.Sup / right.Sup);
+            T max = MathHelper.Max(left.Min / right.Min, left.Min / right.Max, left.Max / right.Min, left.Max / right.Max);
 
             return new Interval<T>(min, max);
         }
@@ -158,14 +149,14 @@ public record struct Interval<T>
         => value;
     [Pure]
     public static Interval<T> operator -(Interval<T> value)
-        => new(-value.Sup, -value.Inf);
+        => new(-value.Max, -value.Min);
 
     //Comparable operators
     [Pure]
     public static bool operator ==(Interval<T>? left, Interval<T>? right)
        => left is null ? right is null
        : right is null ? false
-       : left.Value.Inf == right.Value.Inf && left.Value.Sup == right.Value.Sup;
+       : left.Value.Min == right.Value.Min && left.Value.Max == right.Value.Max;
     [Pure]
     public static bool operator !=(Interval<T>? left, Interval<T>? right)
         => !(left == right);
@@ -182,10 +173,10 @@ public record struct Interval<T>
     //Parsing methods
     [Pure]
     public override string ToString()
-        => $"{OpeningBracket}{Inf}{Separator}{Sup}{ClosingBracket}";
+        => $"{OpeningBracket}{Min}{Separator}{Max}{ClosingBracket}";
     [Pure]
     public string ToString(string? format, IFormatProvider? formatProvider)
-        => $"{OpeningBracket}{Inf.ToString(format, formatProvider)}{Separator}{Sup.ToString(format, formatProvider)}{ClosingBracket}";
+        => $"{OpeningBracket}{Min.ToString(format, formatProvider)}{Separator}{Max.ToString(format, formatProvider)}{ClosingBracket}";
 
     public static Interval<T> Parse(string s)
         => Parse(s, NumberFormatInfo.CurrentInfo);
@@ -227,6 +218,109 @@ public record struct Interval<T>
         result = new Interval<T>(min, max);
 
         return true;
+    }
+
+    public static Interval<T> Abs(Interval<T> value)
+    {
+        throw new NotImplementedException();
+    }
+
+    public static bool IsCanonical(Interval<T> value)
+    {
+        throw new NotImplementedException();
+    }
+
+    public static bool IsComplexNumber(Interval<T> value)
+    {
+        throw new NotImplementedException();
+    }
+    public static bool IsInteger(Interval<T> value)
+        => value.IsPoint && T.IsInteger(value.Min);
+    public static bool IsEvenInteger(Interval<T> value)
+        => value.IsPoint && T.IsEvenInteger(value.Min);
+    public static bool IsOddInteger(Interval<T> value)
+        => value.IsPoint && T.IsOddInteger(value.Min);
+    public static bool IsImaginaryNumber(Interval<T> value)
+        => T.IsImaginaryNumber(value.Min) || T.IsImaginaryNumber(value.Max);
+    public static bool IsNaN(Interval<T> value)
+        => T.IsNaN(value.Min) || T.IsNaN(value.Max);
+    public static bool IsPositive(Interval<T> value)
+        => T.IsPositive(value.Min);
+    public static bool IsNegative(Interval<T> value)
+        => T.IsNegative(value.Max);
+    public static bool IsFinite(Interval<T> value)
+        => T.IsFinite(value.Min) && T.IsFinite(value.Max);
+    public static bool IsInfinity(Interval<T> value)
+        => T.IsInfinity(value.Min) || T.IsInfinity(value.Max);
+    public static bool IsNegativeInfinity(Interval<T> value)
+        => T.IsNegativeInfinity(value.Min);
+    public static bool IsPositiveInfinity(Interval<T> value)
+        => T.IsPositiveInfinity(value.Max);
+    public static bool IsRealNumber(Interval<T> value)
+        => T.IsRealNumber(value.Min) || T.IsRealNumber(value.Min);
+    public static bool IsNormal(Interval<T> value)
+        => T.IsNormal(value.Min) && T.IsNormal(value.Min);
+    public static bool IsSubnormal(Interval<T> value)
+        => T.IsSubnormal(value.Min) || T.IsSubnormal(value.Min);
+
+    static bool INumberBase<Interval<T>>.IsZero(Interval<T> value)
+    {
+        throw new NotImplementedException();
+    }
+
+    public static Interval<T> MaxMagnitude(Interval<T> x, Interval<T> y)
+    {
+        throw new NotImplementedException();
+    }
+
+    public static Interval<T> MaxMagnitudeNumber(Interval<T> x, Interval<T> y)
+    {
+        throw new NotImplementedException();
+    }
+
+    public static Interval<T> MinMagnitude(Interval<T> x, Interval<T> y)
+    {
+        throw new NotImplementedException();
+    }
+
+    public static Interval<T> MinMagnitudeNumber(Interval<T> x, Interval<T> y)
+    {
+        throw new NotImplementedException();
+    }
+
+    public static Interval<T> Parse(ReadOnlySpan<char> s, NumberStyles style, IFormatProvider? provider)
+    {
+        throw new NotImplementedException();
+    }
+
+    public static Interval<T> Parse(string s, NumberStyles style, IFormatProvider? provider)
+    {
+        throw new NotImplementedException();
+    }
+
+    public static bool TryParse(ReadOnlySpan<char> s, NumberStyles style, IFormatProvider? provider, [MaybeNullWhen(false)] out Interval<T> result)
+    {
+        throw new NotImplementedException();
+    }
+
+    public static bool TryParse([NotNullWhen(true)] string? s, NumberStyles style, IFormatProvider? provider, [MaybeNullWhen(false)] out Interval<T> result)
+    {
+        throw new NotImplementedException();
+    }
+
+    public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
+    {
+        throw new NotImplementedException();
+    }
+
+    public static Interval<T> Parse(ReadOnlySpan<char> s, IFormatProvider? provider)
+    {
+        throw new NotImplementedException();
+    }
+
+    public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, [MaybeNullWhen(false)] out Interval<T> result)
+    {
+        throw new NotImplementedException();
     }
 
 
