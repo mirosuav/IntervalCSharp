@@ -27,7 +27,7 @@ public class IntervalFunctionsTests
         var expected = Interval.Parse(expecteds, formatUS);
 
         //ACT
-        var result = left.Abs();
+        var result = Interval.Abs(left);
 
         //ASSERT
         result.Should().Be(expected);

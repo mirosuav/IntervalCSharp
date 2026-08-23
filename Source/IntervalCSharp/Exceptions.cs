@@ -7,6 +7,15 @@ internal static class IntervalExceptions
 
     internal static readonly DivideByZeroException DividingByIntervalContainingZero
         = new DivideByZeroException("Division by interval containing Zero.");
+
+    internal static readonly ArgumentOutOfRangeException SquareRootOfNegativeInterval
+        = new ArgumentOutOfRangeException("value", "Square root of an interval reaching below Zero.");
+
+    internal static readonly ArgumentOutOfRangeException LogarithmOfNegativeInterval
+        = new ArgumentOutOfRangeException("value", "Logarithm of an interval reaching below Zero.");
+
+    internal static readonly ArgumentOutOfRangeException TangentOfIntervalContainingPole
+        = new ArgumentOutOfRangeException("value", "Tangent of an interval containing a pole at (k + 1/2)*PI.");
 }
 
 public class IntervalFormatExceptions : FormatException

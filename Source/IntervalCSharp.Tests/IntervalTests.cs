@@ -342,6 +342,40 @@ public class IntervalTests
         sut.Should().Be(expected);
     }
 
+    [Theory]
+    [InlineData(-1e308, 1e308)]
+    [InlineData(1e308, 1.5e308)]
+    [InlineData(-1.7e308, 1.7e308)]
+    public void RadiusAndMiddle_DoNotOverflowOnWideIntervals(double min, double max)
+    {
+        //ARRANGE
+        var sut = new Interval(min, max);
+
+        //ASSERT
+        double.IsFinite(sut.Radius).Should().BeTrue();
+        double.IsFinite(sut.Middle).Should().BeTrue();
+        sut.Radius.Should().BeGreaterThanOrEqualTo(0.0);
+        sut.Middle.Should().BeGreaterThanOrEqualTo(min).And.BeLessThanOrEqualTo(max);
+    }
+
+    [Theory]
+    [InlineData(2.0, 8.0, 3.0, 5.0)]
+    [InlineData(-1e308, 1e308, 1e308, 0.0)]
+    public void RadiusAndMiddle_Values(double min, double max, double radius, double middle)
+    {
+        //ARRANGE
+        var sut = new Interval(min, max);
+
+        //ASSERT
+        sut.Radius.Should().Be(radius);
+        sut.Middle.Should().Be(middle);
+    }
+
+    [Fact]
+    public void Width_OverflowsWhenTheTrueWidthIsNotRepresentable()
+        //Unavoidable, unlike Radius/Middle: 2e308 simply has no double. Documented, not a bug.
+        => new Interval(-1e308, 1e308).Width.Should().Be(double.PositiveInfinity);
+
 
     [Theory]
     [InlineData("[0;0]", "[0;0]", "[0;0]")]

@@ -13,31 +13,31 @@ public class FPURoundingTests
     public void RoundedDown_IsDifferentThanROundedUp(double d1, double d2)
     {
         //ACT
-        var r1get = FPURounding.Get();
-        FPURounding.Down();
+        var r1get = FpuRounding.Get();
+        FpuRounding.Down();
         double rDown = d1 * d2;
 
-        var r2get = FPURounding.Get();
-        FPURounding.Up();
+        var r2get = FpuRounding.Get();
+        FpuRounding.Up();
         double rUp= d1 * d2;
 
-        var r3get = FPURounding.Get();
-        FPURounding.Down();
+        var r3get = FpuRounding.Get();
+        FpuRounding.Down();
         double rDown2 = d1 * d2;
 
-        var r4get = FPURounding.Get();
+        var r4get = FpuRounding.Get();
 
         //ASSERT
         rDown2.Should().Be(rDown);
         rDown.Should().BeLessThan(rUp);
 
-        r2get.Should().Be(FPURounding.RoundingMode.Down);
-        r3get.Should().Be(FPURounding.RoundingMode.Up);
-        r4get.Should().Be(FPURounding.RoundingMode.Down);
+        r2get.Should().Be(RoundingMode.Down);
+        r3get.Should().Be(RoundingMode.Up);
+        r4get.Should().Be(RoundingMode.Down);
 
-        FPURounding.Reset();
+        FpuRounding.Reset();
 
-        FPURounding.Get().Should().Be(FPURounding.InitialRoundingMode);
+        FpuRounding.Get().Should().Be(FpuRounding.InitialRoundingMode);
 
     }
 
@@ -49,10 +49,10 @@ public class FPURoundingTests
     public void AddDoubles_RoundedDown_IsDifferentThanRoundedUp(double d1, double d2)
     {
         //ACT
-        FPURounding.Down();
+        FpuRounding.Down();
         double rDown = d1 + d2;
 
-        FPURounding.Up();
+        FpuRounding.Up();
         double rUp = d1 + d2;
 
         //ASSERT
@@ -62,18 +62,18 @@ public class FPURoundingTests
 
 
     [Theory]
-    [InlineData(FPURounding.RoundingMode.Truncate)]
-    [InlineData(FPURounding.RoundingMode.Up)]
-    [InlineData(FPURounding.RoundingMode.Down)]
-    public void SetRoundingMode_SetsMode(FPURounding.RoundingMode mode)
+    [InlineData(RoundingMode.Truncate)]
+    [InlineData(RoundingMode.Up)]
+    [InlineData(RoundingMode.Down)]
+    public void SetRoundingMode_SetsMode(RoundingMode mode)
     {
         //ACT
-        FPURounding.Set(mode);
+        FpuRounding.Set(mode);
 
         //ASSERT
-        FPURounding.Get().Should().Be(mode);
+        FpuRounding.Get().Should().Be(mode);
 
-        FPURounding.Reset();
+        FpuRounding.Reset();
     }
 
 

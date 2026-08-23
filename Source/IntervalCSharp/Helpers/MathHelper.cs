@@ -1,33 +1,17 @@
-﻿using System.Numerics;
+using System.Numerics;
 
 namespace IntervalCSharp.Helpers;
+
+/// <summary>
+/// Fixed-arity min/max over the four candidate products (or quotients) of an interval
+/// multiplication or division. Fixed arity - not <c>params T[]</c> - because these sit on the
+/// hot path of every such operator and must not allocate.
+/// </summary>
 public static class MathHelper
 {
-    internal static readonly InvalidOperationException NoParamsEx = new("Empty parameters array provided.");
-    public static T Min<T>(params T[] numbers) where T : IComparisonOperators<T, T, bool>
-    {
-        if (numbers is null or { Length: 0 })
-            throw NoParamsEx;
+    public static T Min<T>(T a, T b, T c, T d) where T : INumber<T>
+        => T.Min(T.Min(a, b), T.Min(c, d));
 
-        uint minIDx = 0;
-        for (uint i = 0; i < numbers.Length; i++)
-        {
-            if (numbers[i] < numbers[minIDx])
-                minIDx = i;
-        }
-        return numbers[minIDx];
-    }
-    public static T Max<T>(params T[] numbers) where T : IComparisonOperators<T, T, bool>
-    {
-        if (numbers is null or { Length: 0 })
-            throw NoParamsEx;
-
-        uint maxIDx = 0;
-        for (uint i = 0; i < numbers.Length; i++)
-        {
-            if (numbers[i] > numbers[maxIDx])
-                maxIDx = i;
-        }
-        return numbers[maxIDx];
-    }
+    public static T Max<T>(T a, T b, T c, T d) where T : INumber<T>
+        => T.Max(T.Max(a, b), T.Max(c, d));
 }
